@@ -58,85 +58,197 @@ These would be sent seperately and then read into a bytestream or buffer and go 
 | GAME_OVER | Server $\rightarrow$ Client | Server notifies the client that the game is over and what the results are. |
 
 ### CONNECT
+**Format:**
+``` json
+{
+  "msg_type": "CONNECT",
+  "player_id": "<PLAYER_ID>",
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: CONNECT|<PLAYER_ID>|<TIMESTAMP>\n
-Example: CONNECT|Player_1|CoolMan123|1727000005\n
+**Example**
+``` json
+{
+  "msg_type": "CONNECT",
+  "player_id": "CoolMan123",
+  "timestamp": 1727000005
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "CONNECT"
   - PLAYER_ID  (string)  : Alphanumeric alias of active player (e.g. "Player_1")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 ### LOBBY_WAIT
+**Format:**
+```json
+{
+  "msg_type": "LOBBY_WAIT",
+  "role": "<ROLE>",
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: LOBBY_WAIT|<ROLE>|<TIMESTAMP>\n
-Example: LOBBY_WAIT|"X"|1727000006\n
+**Example:**
+``` json
+{
+  "msg_type": "LOBBY_WAIT",
+  "role": "X",
+  "timestamp": 1727000006
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "LOBBY_WAIT"
   - ROLE  (string)  : Alphanumeric role of player (e.g. "O", or "X:)
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
+
 
 ### GAME_START
+**Format:**
+```json
+{
+  "msg_type": "GAME_START",
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: GAME_START|<TIMESTAMP>\n
-Example: GAME_START|1727000007\n
+**Example:**
+```json
+{
+  "msg_type": "GAME_START",
+  "timestamp": 1727000007
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "GAME_START"
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 ### MOVE
+**Format:**
+```json
+{
+  "msg_type": "MOVE",
+  "player_id": "<PLAYER_ID>",
+  "payload": {
+    "row": <ROW>,
+    "col": <COL>
+  },
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: MOVE|<PLAYER_ID>|<ROW>,<COL>|<TIMESTAMP>\n
-Example: MOVE|Player_1|0,2|1727000008\n
+**Example:**
+```json
+{
+  "msg_type": "MOVE",
+  "player_id": "Player_1",
+  "payload": {
+    "row": 0,
+    "col": 2
+  },
+  "timestamp": 1727000008
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "MOVE"
   - PLAYER_ID  (string)  : Alphanumeric alias of active player (e.g. "Player_1")
   - PAYLOAD    (integers): <row>,<col> zero-indexed grid coordinates (e.g. "0,2")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 ### STATE_UPDATE
+
+**Format:**
+```json
+{
+  "msg_type": "STATE_UPDATE",
+  "payload": {
+    "row": <ROW>,
+    "col": <COL>
+  },
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: STATE_UPDATE|<ROW>,<COL>|<TIMESTAMP>\n
-Example: STATE_UPDATE|0,1|1727000009\n
+**Example:**
+```json
+{
+  "msg_type": "STATE_UPDATE",
+  "payload": {
+    "row": 0,
+    "col": 1
+  },
+  "timestamp": 1727000009
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "STATE_UPDATE"
   - PAYLOAD    (integers): <row>,<col> zero-indexed grid coordinates (e.g. "0,1")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 
 ### ERROR
+
+**Format:**
+```json
+{
+  "msg_type": "ERROR",
+  "error_code": <ERROR_CODE>,
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: ERROR|ERROR_CODE|<TIMESTAMP>\n
-Example: ERROR|112|1727000009\n
+**Example:**
+```json
+{
+  "msg_type": "ERROR",
+  "error_code": 112,
+  "timestamp": 1727000009
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "ERROR"
   - ERROR_CODE    (integer): Describes the specific error (e.g. 112)
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 ### DISCONNECT
+
+**Format:**
+```json
+{
+  "msg_type": "DISCONNECT",
+  "player_id": "<PLAYER_ID>",
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: DISCONNECT|<PLAYER_ID>|<TIMESTAMP>\n
-Example: DISCONNECT|Player_1|CoolMan123|1727000005\n
+**Example:**
+```json
+{
+  "msg_type": "DISCONNECT",
+  "player_id": "Player_1",
+  "timestamp": 1727000005
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "DISCONNECT"
   - PLAYER_ID  (string)  : Alphanumeric alias of active player (e.g. "Player_1")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 ### GAME_OVER
+**Format:**
+```json
+{
+  "msg_type": "GAME_OVER",
+  "result": "<RESULT>",
+  "timestamp": <TIMESTAMP>
+}
 ```
-Format: GAME_OVER|<RESULT>|<TIMESTAMP>\n
-Example: GAME_OVER|WIN|CoolMan123|1727000005\n
+**Example:**
+```json
+{
+  "msg_type": "GAME_OVER",
+  "result": "WIN",
+  "timestamp": 1727000005
+}
+```
 Fields:
   - MSG_TYPE   (string)  : "GAME_OVER"
   - RESULT  (string)  : Result of match for player (e.g. "WIN")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
-```
 
 ## Connection Termination and Lifecycle
 
