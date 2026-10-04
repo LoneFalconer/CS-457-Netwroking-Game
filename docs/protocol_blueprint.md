@@ -20,26 +20,26 @@ Messages will be fragmented up and packed inside a TCP packet. This packet is th
 
 ### Coalescing
 
-When the message is received we are able to coalesce these bytes into a string. This is becasue each message is terminated with a /n character. When we are reading the packet we can build a string until we reach a /n charcter. Once we reach a /n character we know that that message is complete and to move onto the next one.
+When the message is received, we put these bytes into a stream/buffer. Because each message is terminated with a /n character, we can then coalesce the bytes. When we reach a /n character, we know that the message is complete; we then push the finished message to a queue and continue to receive more if there is more data.
 
 ### Example Wire Stream
 Imagine this string of messages. 
-``` JSON
+```
 {"msg_type":"CONNECT","player_id":"Alice","timestamp":1727000000}\n{"msg_type":"MOVE","player_id":"Alice","payload":{"row":0,"col":2},"timestamp":1727000005}\n{"msg_type":"MOVE","player_id":"Alice","payload":{"row":1,"col":2},"timestamp":1727000010}\n
 ```
 
 If the string above is split into multiple recv() chunks.
 recv() 1:
-``` code
+```
 {"msg_type":"CONNECT","player_id":"Alice","timestamp":1727000000}\n{"msg_type":"MOVE","player_id":"Alice","
 ```
 recv() 2:
-```code
+```
 payload":{"row":0,"col":2},"timestamp":1727000005}\n{"msg_type":"MOVE","player_id":"Alice","payload":{"row":1,"col":2},"timestamp":1727000010}\n
 ```
 
-These would be sent seperately and then read in. It will see that they are not complete after the first one and so wait for the second one and then stich them together.
-``` JSON
+These would be sent seperately and then read into a bytestream or buffer and go through the process described above under **Coalescing**.
+```
 {"msg_type":"CONNECT","player_id":"Alice","timestamp":1727000000}\n{"msg_type":"MOVE","player_id":"Alice","payload":{"row":0,"col":2},"timestamp":1727000005}\n{"msg_type":"MOVE","player_id":"Alice","payload":{"row":1,"col":2},"timestamp":1727000010}\n
 ```
 
@@ -140,9 +140,36 @@ Fields:
 
 ## Connection Termination and Lifecycle
 
-### Expected Termination
+### Application Disconnect
 
-This occurs when the player sends the server a DISCONNECT to quit the game.
+This occurs when the player sends the server a DISCONNECT to quit the game before terminating the connection. The server is then able to clean up the TCP connection via a TCP 4-way FIN handshake.
 
+Flow:
+1. User sends DISCONNECT to server.
+2. Server sends GAME_OVER to any remaining clients.
+3. Server closes the disconnected user's socket.
+4. Clean up the game state.
 
+### TCP 0-byte EOF Rule
 
+If recv() is called after the server closes the socket connection cleanly, then it will return 0 bytes or b"" in Python. This value, b"", represents the End-Of-File (EOF), which indicates that the connection is closed on the other side. That means that when we are keeping the connection open with while True, we must check whether or not there is still data with a while not data: break line.
+
+### Abrupt Termination
+
+This happens when unexpected behaviour occurs that causes the termination of the game. This could be a client crashing, wifi/ethernet disconnecting, TCP RST, kill -9, etc. This means that no 4-way TCP FIN handshake is completed, and a TCP timeout or RST will occur.
+
+Flow:
+
+1. Error occurs, and connection is lost.
+2. EOF socket exception occurs and is caught.
+3. Forfeit any active game and send GAME_OVER to opponent.
+4. Close the socket of the disconnected player.
+5. Clean up game state.
+
+Here are three examples of possible network link failures or crashes.
+
+TCP RST:
+This occurs when a connection is forcibly closed, or a crash occurs. A ConnectionResetError will be thrown, and we will handle that by treating the player as if they disconnected and clean up.
+
+BrokenPipeError:
+This occurs when a host tries to send data to a socket that is already closed. A BrokenPipeError will be thrown and will be caught and recovered from. Again, we will treat the player as disconnected and clean up.
