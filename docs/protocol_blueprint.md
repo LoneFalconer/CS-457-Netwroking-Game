@@ -48,13 +48,13 @@ These would be sent seperately and then read into a bytestream or buffer and go 
 ### Overview Table
 | Message Type | Direction | Description |
 | -------- | -------- | -------- |
-| CONNECT | Client $\rightarrow$ Server | Client requests to join the room with a gammer tag. |
+| CONNECT | Client $\rightarrow$ Server | Client requests to join the room with a gamer tag. |
 | LOBBY_WAIT | Server $\rightarrow$ Client | Server notifies Client that it is waiting for other Client. |
 | GAME_START | Server $\rightarrow$ Client | Server notifies Client that the game has started and assigns sides. |
 | MOVE | Client $\rightarrow$ Server | Client notifies the Server that it wants to make a move. |
-| STATE_UPDATE | Server $\rightarrow$ Client | Server notifies the Client of an update in the game state. |
+| STATE_UPDATE | Server $\rightarrow$ Client | Server notifies the Client of a move made by the opponent and this change is reflected locally. |
 | ERROR | Server $\rightarrow$ Client | Server notifies the Client that a move was invalid or a message was malformed. |
-| DISCONNECT | Client $\rightarrow$ Server | Client notifies the Server that it is quiting. |
+| DISCONNECT | Client $\rightarrow$ Server | Client notifies the Server that it is quitting. |
 | GAME_OVER | Server $\rightarrow$ Client | Server notifies the client that the game is over and what the results are. |
 
 ### CONNECT
@@ -84,7 +84,6 @@ Fields:
 ```json
 {
   "msg_type": "LOBBY_WAIT",
-  "role": "<ROLE>",
   "timestamp": <TIMESTAMP>
 }
 ```
@@ -92,13 +91,11 @@ Fields:
 ``` json
 {
   "msg_type": "LOBBY_WAIT",
-  "role": "X",
   "timestamp": 1727000006
 }
 ```
 Fields:
   - MSG_TYPE   (string)  : "LOBBY_WAIT"
-  - ROLE  (string)  : Alphanumeric role of player (e.g. "O", or "X:)
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
 
 
@@ -107,6 +104,7 @@ Fields:
 ```json
 {
   "msg_type": "GAME_START",
+  "role": "<ROLE>",
   "timestamp": <TIMESTAMP>
 }
 ```
@@ -114,11 +112,13 @@ Fields:
 ```json
 {
   "msg_type": "GAME_START",
+  "role": "X",
   "timestamp": 1727000007
 }
 ```
 Fields:
   - MSG_TYPE   (string)  : "GAME_START"
+  - ROLE  (string)  : Alphanumeric role of player (e.g. "O", or "X:)
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
 
 ### MOVE
