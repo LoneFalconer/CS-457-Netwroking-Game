@@ -22,5 +22,14 @@ autonumber
         Server-->>Client2: GAME_OVER ("Client 1 wins by forfeit")
         Server-->>Client1: GAME_OVER ("Client 1 wins by forfeit")
     end
+        alt Valid Move to Win
+        Client1->>Server: MOVE (row: 0, col: 1)
+        Note over Server: Server at EVALUATE_MOVE and determines that<br> Client 2 made a game winning move.
+        Server-->>Client1: STATE_UPDATE (Board, Turn: No One)
+        Server-->>Client2: STATE_UPDATE (Board, Turn: No One)
+        Server-->>Client1: GAME_OVER ("Client 1 wins")
+        Server-->>Client2: GAME_OVER ("Client 1 wins")
+        
+    end
     Note over Server: Remove the clients from socket list, close sockets,<br> and reset the board.
 ```
