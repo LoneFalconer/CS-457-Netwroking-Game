@@ -248,6 +248,11 @@ Defined Result Strings:
 
 You are to handle errors in case of abrupt termination, such as client crashing, wifi/ethernet disconnecting, TCP RST, kill -9, etc. This means that no 4-way TCP FIN handshake is completed, and a TCP timeout or RST will occur. When a connection is terminated cleanly, recv() will return 0 bytes, or b"" in Python. This represents the End-Of-File (EOF). It MUST be detected so the server is not stuck in an infinite loop. The program must also handle ConnectionResetError, BrokenPipeError, and TimeoutError. 
 
+## Server Concurrency Architecture (Mandatory)
+- The server (`server.py`) MUST be single-threaded and use Python's `selectors` module (`selectors.DefaultSelector()`) for Non-Blocking I/O Multiplexing. Do NOT use the `threading` or `asyncio` modules on the server.
+- All server sockets (`server_sock` and accepted client sockets) MUST be set to non-blocking mode via `sock.setblocking(False)`.
+- The `selectors` event loop must use a short timeout (e.g., `sel.select(timeout=1.0)`) so it can continuously check the 60-second turn timer during `PLAYER_TURN`. If the active player takes more than 60 seconds to send a valid `MOVE`, the server transitions to `GAME_OVER`, sends `"LOSE_FORFEIT"` to the timed-out player and `"WIN_FORFEIT"` to the waiting player, and transitions to `CLEANUP` -> `WAITING_FOR_PLAYERS`.
+
 ## FSM Specification
 
 ``` mermaid
