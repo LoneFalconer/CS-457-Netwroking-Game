@@ -132,6 +132,8 @@ Fields:
 
 ### STATE_UPDATE
 
+**Behavior Note:** Upon a valid `MOVE`, the Server sends `STATE_UPDATE` to **BOTH** connected clients (`O` and `X`). Both clients maintain a local 3x3 board and track the current active turn (starting with `"O"` on turn 1, alternating between `"O"` and `"X"` on every `STATE_UPDATE` received). When a client receives `STATE_UPDATE`, it places the current turn's symbol (`"O"` or `"X"`) at `(row, col)` on its local board and switches its local active-turn tracker to the other role.
+
 **Format:**
 ```json
 {
