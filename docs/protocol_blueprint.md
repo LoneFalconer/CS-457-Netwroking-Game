@@ -154,6 +154,8 @@ Fields:
 
 ### STATE_UPDATE
 
+**Behavior Note:** Upon a valid `MOVE`, the Server sends `STATE_UPDATE` to **BOTH** connected clients (`O` and `X`). Both clients maintain a local 3x3 board and track the current active turn (starting with `"O"` on turn 1, alternating between `"O"` and `"X"` on every `STATE_UPDATE` received). When a client receives `STATE_UPDATE`, it places the current turn's symbol (`"O"` or `"X"`) at `(row, col)` on its local board and switches its local active-turn tracker to the other role.
+
 **Format:**
 ```json
 {
@@ -205,6 +207,12 @@ Fields:
   - ERROR_CODE    (integer): Describes the specific error (e.g. 112)
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
 
+Defined Error Codes:
+  - 100 : Malformed JSON or invalid message schema
+  - 111 : Out of turn move (Player attempted a MOVE when it is not their turn)
+  - 112 : Invalid move coordinates (Row/Col outside 0-2 or cell is already occupied)
+
+
 ### DISCONNECT
 
 **Format:**
@@ -249,6 +257,14 @@ Fields:
   - MSG_TYPE   (string)  : "GAME_OVER"
   - RESULT  (string)  : Result of match for player (e.g. "WIN")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
+
+Defined Result Strings:
+  - "WIN" : Sent to the winning player (3-in-a-row)
+  - "LOSE" : Sent to the losing player (opponent got 3-in-a-row)
+  - "DRAW" : Sent to both players when all 9 cells are filled with no winner
+  - "WIN_FORFEIT" : Sent to the remaining player when the opponent disconnects or times out (60s)
+  - "LOSE_FORFEIT" : Sent to the player who exceeded the 60-second turn timeout
+
 
 ## Connection Termination and Lifecycle
 

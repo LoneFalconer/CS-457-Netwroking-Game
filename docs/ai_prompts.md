@@ -132,6 +132,8 @@ Fields:
 
 ### STATE_UPDATE
 
+**Behavior Note:** Upon a valid `MOVE`, the Server sends `STATE_UPDATE` to **BOTH** connected clients (`O` and `X`). Both clients maintain a local 3x3 board and track the current active turn (starting with `"O"` on turn 1, alternating between `"O"` and `"X"` on every `STATE_UPDATE` received). When a client receives `STATE_UPDATE`, it places the current turn's symbol (`"O"` or `"X"`) at `(row, col)` on its local board and switches its local active-turn tracker to the other role.
+
 **Format:**
 ```json
 {
@@ -183,6 +185,12 @@ Fields:
   - ERROR_CODE    (integer): Describes the specific error (e.g. 112)
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
 
+Defined Error Codes:
+  - 100 : Malformed JSON or invalid message schema
+  - 111 : Out of turn move (Player attempted a MOVE when it is not their turn)
+  - 112 : Invalid move coordinates (Row/Col outside 0-2 or cell is already occupied)
+
+
 ### DISCONNECT
 
 **Format:**
@@ -228,9 +236,22 @@ Fields:
   - RESULT  (string)  : Result of match for player (e.g. "WIN")
   - TIMESTAMP  (integer) : Unix epoch timestamp in seconds
 
+Defined Result Strings:
+  - "WIN" : Sent to the winning player (3-in-a-row)
+  - "LOSE" : Sent to the losing player (opponent got 3-in-a-row)
+  - "DRAW" : Sent to both players when all 9 cells are filled with no winner
+  - "WIN_FORFEIT" : Sent to the remaining player when the opponent disconnects or times out (60s)
+  - "LOSE_FORFEIT" : Sent to the player who exceeded the 60-second turn timeout
+
+
 ## Error Handling
 
 You are to handle errors in case of abrupt termination, such as client crashing, wifi/ethernet disconnecting, TCP RST, kill -9, etc. This means that no 4-way TCP FIN handshake is completed, and a TCP timeout or RST will occur. When a connection is terminated cleanly, recv() will return 0 bytes, or b"" in Python. This represents the End-Of-File (EOF). It MUST be detected so the server is not stuck in an infinite loop. The program must also handle ConnectionResetError, BrokenPipeError, and TimeoutError. 
+
+## Server Concurrency Architecture (Mandatory)
+- The server (`server.py`) MUST be single-threaded and use Python's `selectors` module (`selectors.DefaultSelector()`) for Non-Blocking I/O Multiplexing. Do NOT use the `threading` or `asyncio` modules on the server.
+- All server sockets (`server_sock` and accepted client sockets) MUST be set to non-blocking mode via `sock.setblocking(False)`.
+- The `selectors` event loop must use a short timeout (e.g., `sel.select(timeout=1.0)`) so it can continuously check the 60-second turn timer during `PLAYER_TURN`. If the active player takes more than 60 seconds to send a valid `MOVE`, the server transitions to `GAME_OVER`, sends `"LOSE_FORFEIT"` to the timed-out player and `"WIN_FORFEIT"` to the waiting player, and transitions to `CLEANUP` -> `WAITING_FOR_PLAYERS`.
 
 ## FSM Specification
 
@@ -260,3 +281,20 @@ stateDiagram-v2
 
     CLEANUP --> WAITING_FOR_PLAYERS: Close Sockets and Reset Game
 ```
+## CLI Argument Parsing & DNS Resolution Requirements
+1. `server.py` CLI:
+   - Use `argparse` to parse `-h` (help) and `-p` (port, required integer).
+   - Validate that `-p` is between `1024` and `65535`. If missing or out of range, display usage syntax and exit cleanly.
+   - Bind the listening TCP socket (`socket.AF_INET`, `socket.SOCK_STREAM`) to `('0.0.0.0', args.port)`.
+2. `client.py` CLI & DNS Resolution:
+   - Use `argparse` to parse `-h` (help), `-i` (server hostname/IP, required string), and `-p` (server port, required integer validated between `1024` and `65535`).
+   - Resolve `-i` using the exact DNS resolution block below before connecting:
+     ```python
+     try:
+         server_ip = socket.gethostbyname(args.hostname)
+     except socket.gaierror as e:
+         print(f"[ERROR] Unable to resolve DNS hostname '{args.hostname}'.")
+         print("Please check your Cisco router DNS configuration ('ip dns server' / 'ip host') or verify domain spelling.")
+         sys.exit(1)
+     ```
+
