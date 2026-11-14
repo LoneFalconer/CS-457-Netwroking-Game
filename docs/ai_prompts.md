@@ -281,3 +281,20 @@ stateDiagram-v2
 
     CLEANUP --> WAITING_FOR_PLAYERS: Close Sockets and Reset Game
 ```
+## CLI Argument Parsing & DNS Resolution Requirements
+1. `server.py` CLI:
+   - Use `argparse` to parse `-h` (help) and `-p` (port, required integer).
+   - Validate that `-p` is between `1024` and `65535`. If missing or out of range, display usage syntax and exit cleanly.
+   - Bind the listening TCP socket (`socket.AF_INET`, `socket.SOCK_STREAM`) to `('0.0.0.0', args.port)`.
+2. `client.py` CLI & DNS Resolution:
+   - Use `argparse` to parse `-h` (help), `-i` (server hostname/IP, required string), and `-p` (server port, required integer validated between `1024` and `65535`).
+   - Resolve `-i` using the exact DNS resolution block below before connecting:
+     ```python
+     try:
+         server_ip = socket.gethostbyname(args.hostname)
+     except socket.gaierror as e:
+         print(f"[ERROR] Unable to resolve DNS hostname '{args.hostname}'.")
+         print("Please check your Cisco router DNS configuration ('ip dns server' / 'ip host') or verify domain spelling.")
+         sys.exit(1)
+     ```
+
