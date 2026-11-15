@@ -11,6 +11,7 @@ Protocol, framing, and message schemas are defined in protocol_blueprint.md.
 
 import argparse
 import json
+import os
 import socket
 import sys
 import threading
@@ -37,6 +38,16 @@ ERROR_MESSAGES = {
     111: "[ERROR 111] Out of turn! Please wait for your turn.",
     112: "[ERROR 112] Invalid move! Cell is occupied or out of bounds (0-2).",
 }
+
+# ---------------------------------------------------------------------------
+# Terminal Display Helpers
+# ---------------------------------------------------------------------------
+
+
+def clear_screen() -> None:
+    """Clear the terminal console screen across platforms (3.5.1)."""
+    os.system("cls" if os.name == "nt" else "clear")
+
 
 # ---------------------------------------------------------------------------
 # Board Rendering
@@ -497,6 +508,16 @@ class TicTacToeClient:
         """Display lobby waiting message."""
         print("[WAIT] Waiting for a second player to join...\n")
 
+    def _print_dashboard_header(self) -> None:
+        """
+        Print a compact 2-line ASCII header displaying player info, role,
+        connected server, and current session scoreboard (3.5.3).
+        """
+        print("=" * 44)
+        print(f"Player: {self.player_id} | Role: {self.my_role} | Server: {self.current_host}:{self.current_port}")
+        print(f"Wins: {self.wins} | Losses: {self.losses} | Draws: {self.draws} | Forfeits: {self.forfeits}")
+        print("=" * 44)
+
     def _on_game_start(self, msg: dict) -> None:
         """
         Handle GAME_START: store role, reset board, display initial state (3.2.3).
@@ -507,10 +528,8 @@ class TicTacToeClient:
         self.game_active = True
         self.game_over = False
 
-        print("\n" + "=" * 44)
-        print("           GAME STARTED!")
-        print(f"  [INFO] You are playing as: {self.my_role}")
-        print("=" * 44)
+        clear_screen()
+        self._print_dashboard_header()
         print(render_board(self.board))
         print()
         self._print_turn_status()
@@ -536,7 +555,9 @@ class TicTacToeClient:
         # Flip active turn (O <-> X)
         self.current_turn = "X" if self.current_turn == "O" else "O"
 
-        print("\n" + render_board(self.board))
+        clear_screen()
+        self._print_dashboard_header()
+        print(render_board(self.board))
         print()
         self._print_turn_status()
 
