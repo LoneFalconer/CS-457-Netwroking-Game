@@ -72,8 +72,8 @@ Build `server.py` to the below sepcifications
 Build `client.py` to satisfy the following.
 
 ### 3.1 CLI Argument Parsing & Mandatory DNS Handling (Criteria 1 & 2)
-- [ ] **3.1.1 `argparse` Flags:** Implements `-h` (help), `-i` (server DNS hostname or IP, required), and `-p` (server port, required integer validated in range `1024-65535`).
-- [ ] **3.1.2 Mandatory `socket.gaierror` Exception Block:** Resolves `-i` via `socket.gethostbyname()` using the exact required error message and exit code `1`:
+- [x] **3.1.1 `argparse` Flags:** Implements `-h` (help), `-i` (server DNS hostname or IP, required), and `-p` (server port, required integer validated in range `1024-65535`).
+- [x] **3.1.2 Mandatory `socket.gaierror` Exception Block:** Resolves `-i` via `socket.gethostbyname()` using the exact required error message and exit code `1`:
   ```python
   try:
       server_ip = socket.gethostbyname(args.hostname)
@@ -82,35 +82,35 @@ Build `client.py` to satisfy the following.
       print("Please check your Cisco router DNS configuration ('ip dns server' / 'ip host') or verify domain spelling.")
       sys.exit(1)
   ```
-- [ ] **3.1.3 Connection Error Handling:** Catches `ConnectionRefusedError` and ` OSError` when connecting to `(server_ip, args.port)` so the client exits cleanly with a friendly message instead of a raw traceback if the server is offline.
+- [x] **3.1.3 Connection Error Handling:** Catches `ConnectionRefusedError` and ` OSError` when connecting to `(server_ip, args.port)` so the client exits cleanly with a friendly message instead of a raw traceback if the server is offline.
 
 ### 3.2 Client Protocol, Local Board Sync & CLI UI
-- [ ] **3.2.1 Player ID & `CONNECT` Handshake:** Prompts the user for an alphanumeric gamer tag (or defaults cleanly if blank) and immediately sends `CONNECT` upon connecting.
-- [ ] **3.2.2 Responsive Receive & Input Handling:** Uses non-blocking I/O or a daemon receiver thread with a `\n`-delimited receive buffer so incoming server messages (`LOBBY_WAIT`, `GAME_START`, `STATE_UPDATE`, `ERROR`, `GAME_OVER`) are processed and displayed immediately even while waiting for user input.
-- [ ] **3.2.3 Local 3x3 Board & Turn Tracking:**
-  - [ ] On `GAME_START`: Stores assigned role (`"O"` or `"X"`), initializes empty local 3x3 board, sets `current_turn = "O"`, renders the initial ASCII board, and displays turn status (`"Your Turn (O)"` or `"Waiting for Player O..."`).
-  - [ ] On `STATE_UPDATE`: Places `current_turn` symbol (`"O"` or `"X"`) at `(payload.row, payload.col)` on the local 3x3 board, flips `current_turn` (`"O"` $\leftrightarrow$ `"X"`), re-renders the clean ASCII board, and prints updated turn status.
-- [ ] **3.2.4 User Input & `DISCONNECT`:**
-  - [ ] Allows user to enter moves as `row col` (e.g., `0 2` or `0,2`) and sends `MOVE` JSON to server.
-  - [ ] Allows user to type `q` / `quit` (or press `Ctrl+C`) to send `DISCONNECT` JSON to the server and exit cleanly.
-- [ ] **3.2.5 Human-Readable Error & Game Over Display:**
-  - [ ] Translates `ERROR` codes (`100`, `111`, `112`) into clear CLI warnings (`"[ERROR 111] Out of turn! Please wait for your turn."`, `"[ERROR 112] Invalid move! Cell is occupied or out of bounds (0-2)."`).
-  - [ ] On `GAME_OVER`: Prints a clear match result banner (`WIN`, `LOSE`, `DRAW`, `WIN_FORFEIT`, `LOSE_FORFEIT`), displays a session score/match summary, closes the socket, and exits cleanly.
+- [x] **3.2.1 Player ID & `CONNECT` Handshake:** Prompts the user for an alphanumeric gamer tag (or defaults cleanly if blank) and immediately sends `CONNECT` upon connecting.
+- [x] **3.2.2 Responsive Receive & Input Handling:** Uses non-blocking I/O or a daemon receiver thread with a `\n`-delimited receive buffer so incoming server messages (`LOBBY_WAIT`, `GAME_START`, `STATE_UPDATE`, `ERROR`, `GAME_OVER`) are processed and displayed immediately even while waiting for user input.
+- [x] **3.2.3 Local 3x3 Board & Turn Tracking:**
+  - [x] On `GAME_START`: Stores assigned role (`"O"` or `"X"`), initializes empty local 3x3 board, sets `current_turn = "O"`, renders the initial ASCII board, and displays turn status (`"Your Turn (O)"` or `"Waiting for Player O..."`).
+  - [x] On `STATE_UPDATE`: Places `current_turn` symbol (`"O"` or `"X"`) at `(payload.row, payload.col)` on the local 3x3 board, flips `current_turn` (`"O"` $\leftrightarrow$ `"X"`), re-renders the clean ASCII board, and prints updated turn status.
+- [x] **3.2.4 User Input & `DISCONNECT`:**
+  - [x] Allows user to enter moves as `row col` (e.g., `0 2` or `0,2`) and sends `MOVE` JSON to server.
+  - [x] Allows user to type `q` / `quit` (or press `Ctrl+C`) to send `DISCONNECT` JSON to the server and exit cleanly.
+- [x] **3.2.5 Human-Readable Error & Game Over Display:**
+  - [x] Translates `ERROR` codes (`100`, `111`, `112`) into clear CLI warnings (`"[ERROR 111] Out of turn! Please wait for your turn."`, `"[ERROR 112] Invalid move! Cell is occupied or out of bounds (0-2)."`).
+  - [x] On `GAME_OVER`: Prints a clear match result banner (`WIN`, `LOSE`, `DRAW`, `WIN_FORFEIT`, `LOSE_FORFEIT`), displays a session score/match summary, closes the socket, and exits cleanly.
 
 ---
 
 ## Phase 4: Automated Verification & Rubric Acceptance Tests
 Run these verification checks after writing `server.py` and `client.py` and check them off once confirmed:
 
-- [ ] **4.1 Help & Port Validation Check:**
-  - [ ] `python3 server.py -h` and `python3 client.py -h` output clean usage instructions.
-  - [ ] `python3 server.py -p 80` and `python3 client.py -i localhost -p 70000` reject out-of-range ports with usage syntax and exit non-zero.
-- [ ] **4.2 Broken DNS Check:**
-  - [ ] `python3 client.py -i invalid.hostname.smith.edu -p 8080` prints the exact `[ERROR] Unable to resolve DNS hostname...` message and exits with code `1` (no traceback).
-- [ ] **4.3 Multi-Turn Gameplay & Edge-Case Verification:**
-  - [ ] Server starts on `0.0.0.0:8080` and accepts 2 simultaneous clients on `localhost:8080`.
-  - [ ] Client 1 receives `LOBBY_WAIT`, then both clients receive `GAME_START` (`O` and `X`).
-  - [ ] Out-of-turn move returns `ERROR 111`; occupied cell move returns `ERROR 112`.
-  - [ ] At least 3 valid turns complete with synchronized board updates on both clients up to a `GAME_OVER` state, and server cleanly resets to `WAITING_FOR_PLAYERS`.
-- [ ] **4.4 Code Quality & PEP 8:**
-  - [ ] Both `server.py` and `client.py` follow PEP 8 naming/formatting, are modular, and include explanatory docstrings and inline comments.
+- [x] **4.1 Help & Port Validation Check:**
+  - [x] `python3 server.py -h` and `python3 client.py -h` output clean usage instructions.
+  - [x] `python3 server.py -p 80` and `python3 client.py -i localhost -p 70000` reject out-of-range ports with usage syntax and exit non-zero.
+- [x] **4.2 Broken DNS Check:**
+  - [x] `python3 client.py -i invalid.hostname.smith.edu -p 8080` prints the exact `[ERROR] Unable to resolve DNS hostname...` message and exits with code `1` (no traceback).
+- [x] **4.3 Multi-Turn Gameplay & Edge-Case Verification:**
+  - [x] Server starts on `0.0.0.0:8080` and accepts 2 simultaneous clients on `localhost:8080`.
+  - [x] Client 1 receives `LOBBY_WAIT`, then both clients receive `GAME_START` (`O` and `X`).
+  - [x] Out-of-turn move returns `ERROR 111`; occupied cell move returns `ERROR 112`.
+  - [x] At least 3 valid turns complete with synchronized board updates on both clients up to a `GAME_OVER` state, and server cleanly resets to `WAITING_FOR_PLAYERS`.
+- [x] **4.4 Code Quality & PEP 8:**
+  - [x] Both `server.py` and `client.py` follow PEP 8 naming/formatting, are modular, and include explanatory docstrings and inline comments.
