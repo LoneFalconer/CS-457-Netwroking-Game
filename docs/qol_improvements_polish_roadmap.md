@@ -79,8 +79,8 @@ When a match ends (`GAME_OVER` received or opponent forfeits):
      - Connects to the new server, sends `CONNECT`, and preserves the session score history.
    - **Option `3` (or `q` / `Ctrl+C`):** Prints final session totals and exits cleanly (`sys.exit(0)`).
 
-- [ ] **3.1 Persistent Session Tracker:** Maintain `wins`, `losses`, and `draws` across multiple matches in `client.py`.
-- [ ] **3.2 Clean Socket/Thread Reset Between Matches:** Ensure the previous match's socket and receiver thread are fully closed/joined before starting the post-game menu prompt so stdin input does not conflict with an old background thread.
-- [ ] **3.3 Implement Option 1 (Reconnect to Same Server):** Reconnects cleanly to the same `(hostname, port)` and starts a new game.
-- [ ] **3.4 Implement Option 2 (Change Host & Port):** Prompts for new hostname and port, validates port (`1024-65535`), resolves DNS via `socket.gethostbyname()` catching `socket.gaierror`, and connects.
-- [ ] **3.5 Implement Option 3 (Quit):** Prints final session summary and exits cleanly.
+- [x] **3.1 Persistent Session Tracker:** Maintain `wins`, `losses`, and `draws` across multiple matches in `client.py`.
+- [x] **3.2 Clean Socket/Thread Reset Between Matches:** Ensure the previous match's socket and receiver thread are fully closed/joined before starting the post-game menu prompt so stdin input does not conflict with an old background thread.
+- [x] **3.3 Implement Option 1 (Reconnect to Same Server):** Reconnects cleanly to the same `(hostname, port)` and starts a new game.
+- [x] **3.4 Implement Option 2 (Change Host & Port):** Prompts for new hostname and port, validates port (`1024-65535`), resolves DNS via `socket.gethostbyname()` catching `socket.gaierror`, and connects.
+- [x] **3.5 Implement Option 3 (Quit):** Prints final session summary and exits cleanly.
