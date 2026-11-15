@@ -180,7 +180,7 @@ class TicTacToeServer:
         self.host = host
         self.port = port
 
-        # Selector (Criterion 4 — single-threaded multiplexing)
+        # Selector (Criterion 4 - single-threaded multiplexing)
         self.sel = selectors.DefaultSelector()
 
         # FSM state
@@ -213,12 +213,12 @@ class TicTacToeServer:
         server_sock.setblocking(False)  # Non-blocking (Criterion 4)
 
         self.sel.register(server_sock, selectors.EVENT_READ, data="server")
-        print(f"[SERVER] Listening on {self.host}:{self.port}")
+        print(f"[INIT] Server listening on {self.host}:{self.port}")
 
         try:
             self._event_loop(server_sock)
         except KeyboardInterrupt:
-            print("\n[SERVER] Shutting down.")
+            print("\n[CLEANUP] Server shutting down.")
         finally:
             self.sel.close()
             server_sock.close()
@@ -267,7 +267,7 @@ class TicTacToeServer:
             "role": None,
             "buf": bytearray(),
         }
-        print(f"[SERVER] New connection from {addr}")
+        print(f"[CONNECT] New connection from {addr}")
 
     # ------------------------------------------------------------------
     # Client I/O
@@ -282,27 +282,27 @@ class TicTacToeServer:
             data = sock.recv(4096)
         except (ConnectionResetError, BrokenPipeError, TimeoutError, OSError):
             # Abrupt disconnect (2.4.3)
-            print(f"[SERVER] Socket error on {sock.getpeername()!r} — treating as disconnect.")
+            print(f"[ERROR] Socket error on {sock.getpeername()!r} - treating as disconnect.")
             self._handle_abrupt_disconnect(sock)
             return
 
         if not data:
-            # EOF — remote side closed the connection cleanly (2.4.3)
-            print("[SERVER] EOF received — client disconnected.")
+            # EOF - remote side closed the connection cleanly (2.4.3)
+            print("[CONNECT] EOF received - client disconnected.")
             self._handle_abrupt_disconnect(sock)
             return
 
-        # Append to per-socket receive buffer (1.2 — fragmentation buffer)
+        # Append to per-socket receive buffer (1.2 - fragmentation buffer)
         self.clients[sock]["buf"] += data
 
-        # Extract complete newline-delimited messages (1.2 — coalescing)
+        # Extract complete newline-delimited messages (1.2 - coalescing)
         messages, self.clients[sock]["buf"] = parse_messages(
             self.clients[sock]["buf"]
         )
 
         for msg in messages:
             if msg is None:
-                # Malformed JSON — send error code 100
+                # Malformed JSON - send error code 100
                 send_msg(sock, build_error(ERR_MALFORMED))
                 continue
             self._dispatch(sock, msg)
@@ -334,10 +334,10 @@ class TicTacToeServer:
         Handle a CONNECT message.
 
         FSM: WAITING_FOR_PLAYERS
-          - 1st client  → stores player_id, assigns role 'O', sends LOBBY_WAIT
-          - 2nd client  → stores player_id, assigns role 'X', transitions to
+          - 1st client  -> stores player_id, assigns role 'O', sends LOBBY_WAIT
+          - 2nd client  -> stores player_id, assigns role 'X', transitions to
                           GAME_START and then immediately to PLAYER_TURN
-          - Extra clients (match already active) → ignored / rejected
+          - Extra clients (match already active) -> ignored / rejected
         """
         # Validate required fields (1.3)
         if "player_id" not in msg or "timestamp" not in msg:
@@ -347,11 +347,11 @@ class TicTacToeServer:
         player_id = msg["player_id"]
 
         if self.state != STATE_WAITING_FOR_PLAYERS:
-            # Match is already active — reject extra connections (2.3.3)
-            print(f"[SERVER] Rejecting extra CONNECT from {player_id!r} (game active).")
+            # Match is already active - reject extra connections (2.3.3)
+            print(f"[CONNECT] Rejecting extra CONNECT from {player_id!r} (game active).")
             return
 
-        # Already registered this socket (duplicate CONNECT) — ignore
+        # Already registered this socket (duplicate CONNECT) - ignore
         if self.clients[sock]["player_id"] is not None:
             return
 
@@ -361,23 +361,23 @@ class TicTacToeServer:
             self.clients[sock]["role"] = "O"
             self.player_socks.append(sock)
             send_msg(sock, build_lobby_wait())
-            print(f"[SERVER] Player 1 '{player_id}' connected — role O. Waiting for Player 2.")
+            print(f"[CONNECT] Player 1 '{player_id}' connected (role O). Waiting for Player 2.")
 
         elif len(self.player_socks) == 1:
-            # --- Second player (X) → start game ---
+            # --- Second player (X) -> start game ---
             self.clients[sock]["player_id"] = player_id
             self.clients[sock]["role"] = "X"
             self.player_socks.append(sock)
-            print(f"[SERVER] Player 2 '{player_id}' connected — role X. Starting game.")
+            print(f"[CONNECT] Player 2 '{player_id}' connected (role X). Starting game.")
             self._start_game()
 
     # ------------------------------------------------------------------
-    # FSM: GAME_START → PLAYER_TURN
+    # FSM: GAME_START -> PLAYER_TURN
     # ------------------------------------------------------------------
 
     def _start_game(self) -> None:
         """
-        Transition WAITING_FOR_PLAYERS → GAME_START → PLAYER_TURN.
+        Transition WAITING_FOR_PLAYERS -> GAME_START -> PLAYER_TURN.
 
         Resets the board, assigns turns, and broadcasts GAME_START to both
         clients (2.3.4).
@@ -389,15 +389,15 @@ class TicTacToeServer:
         self.active_turn = "O"
 
         # Send GAME_START to each player with their respective role
-        sock_o = self.player_socks[0]  # Player 1 — O
-        sock_x = self.player_socks[1]  # Player 2 — X
+        sock_o = self.player_socks[0]  # Player 1 - O
+        sock_x = self.player_socks[1]  # Player 2 - X
         send_msg(sock_o, build_game_start("O"))
         send_msg(sock_x, build_game_start("X"))
 
         # Start the 60-second turn timer
         self.turn_start_time = time.time()
         self.state = STATE_PLAYER_TURN
-        print(f"[SERVER] Game started. {self.active_turn}'s turn.")
+        print(f"[STATE] Game started. {self.active_turn}'s turn.")
 
     # ------------------------------------------------------------------
     # FSM: MOVE
@@ -412,7 +412,7 @@ class TicTacToeServer:
         win/draw/continue.
         """
         if self.state != STATE_PLAYER_TURN:
-            # MOVE outside of an active game — ignore
+            # MOVE outside of an active game - ignore
             return
 
         # Validate required fields (1.3)
@@ -451,7 +451,7 @@ class TicTacToeServer:
         # --- Valid move: apply to board ---
         self.board[row][col] = self.active_turn
         print(
-            f"[SERVER] {self.active_turn} played ({row},{col})."
+            f"[STATE] {self.active_turn} played ({row},{col})."
         )
 
         # Broadcast STATE_UPDATE to BOTH clients (2.3.6)
@@ -462,16 +462,16 @@ class TicTacToeServer:
         # Win / draw / continue evaluation (2.3.7)
         winner = check_winner(self.board)
         if winner:
-            # 3-in-a-row detected → GAME_OVER
+            # 3-in-a-row detected -> GAME_OVER
             self._end_game_winner(winner)
         elif is_draw(self.board):
-            # All 9 cells filled, no winner → DRAW
+            # All 9 cells filled, no winner -> DRAW
             self._end_game_draw()
         else:
             # Switch turn and reset the timer
             self.active_turn = "X" if self.active_turn == "O" else "O"
             self.turn_start_time = time.time()
-            print(f"[SERVER] Turn switched. Now {self.active_turn}'s turn.")
+            print(f"[STATE] Turn switched. Now {self.active_turn}'s turn.")
 
     # ------------------------------------------------------------------
     # FSM: DISCONNECT (graceful)
@@ -489,7 +489,7 @@ class TicTacToeServer:
             send_msg(sock, build_error(ERR_MALFORMED))
 
         player_id = self.clients[sock].get("player_id", "unknown")
-        print(f"[SERVER] DISCONNECT received from '{player_id}'.")
+        print(f"[CONNECT] DISCONNECT received from '{player_id}'.")
 
         if self.state == STATE_PLAYER_TURN:
             # Award the remaining player a forfeit win (2.4.2)
@@ -545,7 +545,7 @@ class TicTacToeServer:
         """
         if time.time() - self.turn_start_time > TURN_TIMEOUT_SECONDS:
             print(
-                f"[SERVER] Turn timeout! {self.active_turn} took over 60 seconds."
+                f"[STATE] Turn timeout! {self.active_turn} took over 60 seconds."
             )
             self.state = STATE_GAME_OVER
 
@@ -575,7 +575,7 @@ class TicTacToeServer:
         (2.3.7).
         """
         self.state = STATE_GAME_OVER
-        print(f"[SERVER] {winner_role} wins!")
+        print(f"[GAME OVER] {winner_role} wins!")
 
         for s in self.player_socks:
             role = self.clients[s]["role"]
@@ -589,7 +589,7 @@ class TicTacToeServer:
     def _end_game_draw(self) -> None:
         """Send DRAW to both players, then cleanup (2.3.7)."""
         self.state = STATE_GAME_OVER
-        print("[SERVER] Draw!")
+        print("[GAME OVER] Draw!")
 
         for s in self.player_socks:
             send_msg(s, build_game_over("DRAW"))
@@ -597,18 +597,18 @@ class TicTacToeServer:
         self._cleanup()
 
     # ------------------------------------------------------------------
-    # CLEANUP → WAITING_FOR_PLAYERS
+    # CLEANUP -> WAITING_FOR_PLAYERS
     # ------------------------------------------------------------------
 
     def _cleanup(self) -> None:
         """
-        Transition GAME_OVER → CLEANUP → WAITING_FOR_PLAYERS (2.4.4).
+        Transition GAME_OVER -> CLEANUP -> WAITING_FOR_PLAYERS (2.4.4).
 
         Unregisters all client sockets from the selector, closes them, resets
         game state, and returns the server to WAITING_FOR_PLAYERS.
         """
         self.state = STATE_CLEANUP
-        print("[SERVER] Cleaning up game state.")
+        print("[CLEANUP] Cleaning up game state.")
 
         for s in list(self.player_socks):
             self._remove_client(s)
@@ -624,7 +624,7 @@ class TicTacToeServer:
         self.player_socks = []
 
         self.state = STATE_WAITING_FOR_PLAYERS
-        print("[SERVER] Reset complete. Waiting for new players.")
+        print("[STATE] Reset complete. Waiting for new players.")
 
     def _remove_client(self, sock: socket.socket) -> None:
         """Unregister *sock* from the selector, close it, and remove metadata."""
@@ -652,7 +652,7 @@ def parse_args() -> argparse.Namespace:
     """
     Parse and validate command-line arguments.
 
-    Required:  -p / --port  (integer, 1024–65535)
+    Required:  -p / --port  (integer, 1024-65535)
     Optional:  -h           (auto-generated help)
     """
     parser = argparse.ArgumentParser(
@@ -666,7 +666,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         required=True,
         metavar="PORT",
-        help="Port to listen on (1024–65535).",
+        help="Port to listen on (1024-65535).",
     )
     args = parser.parse_args()
 

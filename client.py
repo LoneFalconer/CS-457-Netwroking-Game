@@ -24,11 +24,11 @@ RECV_BUFFER = 4096  # bytes per recv() call
 
 # Human-readable labels for every GAME_OVER result string
 RESULT_BANNERS = {
-    "WIN": "🎉  YOU WIN!",
-    "LOSE": "😞  YOU LOSE.",
-    "DRAW": "🤝  IT'S A DRAW!",
-    "WIN_FORFEIT": "🏆  YOU WIN BY FORFEIT!  (Opponent disconnected/timed out)",
-    "LOSE_FORFEIT": "⏱️  YOU LOSE BY FORFEIT.  (You exceeded the 60-second turn limit)",
+    "WIN": "[GAME OVER] YOU WIN!",
+    "LOSE": "[GAME OVER] YOU LOSE.",
+    "DRAW": "[GAME OVER] IT'S A DRAW!",
+    "WIN_FORFEIT": "[GAME OVER] YOU WIN BY FORFEIT! (Opponent disconnected/timed out)",
+    "LOSE_FORFEIT": "[GAME OVER] YOU LOSE BY FORFEIT. (You exceeded the 60-second turn limit)",
 }
 
 # Human-readable descriptions for every ERROR code
@@ -76,7 +76,7 @@ def send_msg(sock: socket.socket, msg: dict) -> None:
     """
     Serialize *msg* to JSON and send it over *sock* with a trailing newline.
 
-    Framing (protocol_blueprint.md §Framing): one JSON object per line,
+    Framing (protocol_blueprint.md Section Framing): one JSON object per line,
     terminated with \\n, encoded as UTF-8.
     """
     raw = json.dumps(msg) + "\n"
@@ -124,14 +124,14 @@ class ReceiverThread(threading.Thread):
                 return
 
             if not data:
-                # EOF — server closed the connection (protocol_blueprint.md §TCP 0-byte EOF)
+                # EOF - server closed the connection (protocol_blueprint.md Section TCP 0-byte EOF)
                 self.on_disconnect()
                 return
 
-            # Append to persistent stream buffer (1.2 — fragmentation buffer)
+            # Append to persistent stream buffer (1.2 - fragmentation buffer)
             self._buf += data
 
-            # Extract all complete \\n-delimited messages (1.2 — coalescing)
+            # Extract all complete \n-delimited messages (1.2 - coalescing)
             while b"\n" in self._buf:
                 line, self._buf = self._buf.split(b"\n", 1)
                 line = line.strip()
@@ -200,7 +200,7 @@ class TicTacToeClient:
         )
         receiver.start()
 
-        print(f"\n[CLIENT] Connected as '{self.player_id}'. Waiting for server…\n")
+        print(f"\n[INFO] Connected as '{self.player_id}'. Waiting for server...\n")
 
         # Main input loop
         self._input_loop()
@@ -214,8 +214,8 @@ class TicTacToeClient:
         Block on user input, parse moves, and send MOVE or DISCONNECT to server.
 
         Accepts:
-          - 'q' / 'quit'  → send DISCONNECT and exit (3.2.4)
-          - 'row col' or 'row,col' (e.g. '0 2' or '1,2') → send MOVE
+          - 'q' / 'quit'  -> send DISCONNECT and exit (3.2.4)
+          - 'row col' or 'row,col' (e.g. '0 2' or '1,2') -> send MOVE
         """
         while not self._stop_event.is_set():
             try:
@@ -224,7 +224,7 @@ class TicTacToeClient:
                 # Piped input exhausted
                 break
             except KeyboardInterrupt:
-                # Ctrl+C → graceful quit (3.2.4)
+                # Ctrl+C -> graceful quit (3.2.4)
                 self._send_disconnect()
                 break
 
@@ -244,18 +244,18 @@ class TicTacToeClient:
                 continue
 
             if self.current_turn != self.my_role:
-                print("  ⚠  It's not your turn yet. Please wait.")
+                print("  [WAIT] It's not your turn yet. Please wait.")
                 continue
 
             # Parse 'row col' or 'row,col'
             parts = line.replace(",", " ").split()
             if len(parts) != 2:
-                print("  ⚠  Enter your move as: row col  (e.g. 0 2)")
+                print("  [ERROR] Enter your move as: row col  (e.g. 0 2)")
                 continue
             try:
                 row, col = int(parts[0]), int(parts[1])
             except ValueError:
-                print("  ⚠  Row and column must be integers (0, 1, or 2).")
+                print("  [ERROR] Row and column must be integers (0, 1, or 2).")
                 continue
 
             # Send MOVE to server (3.2.4)
@@ -293,7 +293,7 @@ class TicTacToeClient:
 
     def _on_lobby_wait(self, msg: dict) -> None:
         """Display lobby waiting message."""
-        print("⏳  Waiting for a second player to join…\n")
+        print("[WAIT] Waiting for a second player to join...\n")
 
     def _on_game_start(self, msg: dict) -> None:
         """
@@ -301,13 +301,13 @@ class TicTacToeClient:
         """
         self.my_role = msg.get("role")
         self.board = [["" for _ in range(3)] for _ in range(3)]
-        self.current_turn = "O"   # O always starts (spec §2.3.4)
+        self.current_turn = "O"   # O always starts (spec Section 2.3.4)
         self.game_active = True
         self.game_over = False
 
         print("\n" + "=" * 44)
         print("           GAME STARTED!")
-        print(f"  You are playing as: {self.my_role}")
+        print(f"  [INFO] You are playing as: {self.my_role}")
         print("=" * 44)
         print(render_board(self.board))
         print()
@@ -318,7 +318,7 @@ class TicTacToeClient:
         Handle STATE_UPDATE: place symbol on local board, flip turn (3.2.3).
 
         The client tracks whose turn it is independently by flipping
-        current_turn on every STATE_UPDATE received — matching the server's
+        current_turn on every STATE_UPDATE received - matching the server's
         authoritative FSM.
         """
         payload = msg.get("payload", {})
@@ -331,7 +331,7 @@ class TicTacToeClient:
         # Place the current turn's symbol (before flipping)
         self.board[row][col] = self.current_turn
 
-        # Flip active turn (O ↔ X)
+        # Flip active turn (O <-> X)
         self.current_turn = "X" if self.current_turn == "O" else "O"
 
         print("\n" + render_board(self.board))
@@ -342,17 +342,17 @@ class TicTacToeClient:
         """Display a human-readable error message (3.2.5)."""
         code = msg.get("error_code")
         text = ERROR_MESSAGES.get(code, f"[ERROR {code}] An unknown error occurred.")
-        print(f"\n  ⚠  {text}")
+        print(f"\n  {text}")
         # Re-prompt if it's still our turn
         if self.game_active and self.current_turn == self.my_role:
-            print(f"  Enter your move (row col): ", end="", flush=True)
+            print(f"  [TURN] Enter your move (row col): ", end="", flush=True)
 
     def _on_game_over(self, msg: dict) -> None:
         """
         Display the game-over banner and session summary, then signal exit (3.2.5).
         """
         result = msg.get("result", "UNKNOWN")
-        banner = RESULT_BANNERS.get(result, f"GAME OVER — result: {result}")
+        banner = RESULT_BANNERS.get(result, f"[GAME OVER] Result: {result}")
 
         # Update session score
         if result == "WIN" or result == "WIN_FORFEIT":
@@ -367,7 +367,7 @@ class TicTacToeClient:
         print("=" * 44)
         print(render_board(self.board))
         print()
-        print("  ── Session Summary ──")
+        print("  -- Session Summary --")
         print(f"  Wins: {self.wins}  |  Losses: {self.losses}  |  Draws: {self.draws}")
         print("=" * 44 + "\n")
 
@@ -388,9 +388,9 @@ class TicTacToeClient:
     def _print_turn_status(self) -> None:
         """Print whose turn it is and prompt for input if it's the user's turn."""
         if self.current_turn == self.my_role:
-            print(f"  ➤  Your Turn ({self.my_role}) — enter move (row col): ", end="", flush=True)
+            print(f"  [TURN] Your Turn ({self.my_role}) - enter move (row col): ", end="", flush=True)
         else:
-            print(f"  ⌛  Waiting for Player {self.current_turn}…")
+            print(f"  [WAIT] Waiting for Player {self.current_turn}...")
 
     def _send_disconnect(self) -> None:
         """Send DISCONNECT to the server and signal exit (3.2.4)."""
@@ -399,7 +399,7 @@ class TicTacToeClient:
             "player_id": self.player_id,
             "timestamp": ts(),
         })
-        print("\n[CLIENT] Disconnected. Goodbye!")
+        print("\n[INFO] Disconnected. Goodbye!")
         self._stop_event.set()
         try:
             self.sock.close()
@@ -409,7 +409,7 @@ class TicTacToeClient:
     def _on_server_disconnect(self) -> None:
         """Called by the receiver thread when the server closes the connection."""
         if not self._stop_event.is_set():
-            print("\n[CLIENT] Connection to server lost.")
+            print("\n[INFO] Connection to server lost.")
             self._stop_event.set()
 
 
@@ -424,7 +424,7 @@ def parse_args() -> argparse.Namespace:
 
     Required:
       -i / --hostname   server DNS name or IP
-      -p / --port       server port (1024–65535)
+      -p / --port       server port (1024-65535)
     Optional:
       -h                auto-generated help
     """
@@ -446,7 +446,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         required=True,
         metavar="PORT",
-        help="Server port (1024–65535).",
+        help="Server port (1024-65535).",
     )
     args = parser.parse_args()
 
@@ -492,7 +492,7 @@ def main() -> None:
         )
         sys.exit(1)
     except OSError as e:
-        print(f"[ERROR] Could not connect to {args.hostname}:{args.port} — {e}")
+        print(f"[ERROR] Could not connect to {args.hostname}:{args.port} - {e}")
         sys.exit(1)
 
     # --- Prompt for player ID (3.2.1) ---

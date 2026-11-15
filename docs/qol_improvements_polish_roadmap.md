@@ -9,8 +9,8 @@
 ## 1. Complete Emoji Removal (`client.py` & `server.py`)
 Remove every Unicode emoji/icon (such as hourglasses `⏳`, checkmarks, crosses, trophies, etc.) from all `print()` statements, prompts, banners, and log messages.
 
-- [ ] **1.1 Zero Emojis in `client.py`:** Replace all emojis in lobby messages, turn status prompts, error messages, and game-over banners with clean, plain-ASCII tags such as `[INFO]`, `[WAIT]`, `[TURN]`, `[ERROR]`, and `[GAME OVER]`.
-- [ ] **1.2 Zero Emojis in `server.py`:** Ensure all server console logs use clean plain-ASCII prefixes (e.g., `[INIT]`, `[CONNECT]`, `[STATE]`, `[ERROR]`, `[CLEANUP]`).
+- [x] **1.1 Zero Emojis in `client.py`:** Replace all emojis in lobby messages, turn status prompts, error messages, and game-over banners with clean, plain-ASCII tags such as `[INFO]`, `[WAIT]`, `[TURN]`, `[ERROR]`, and `[GAME OVER]`.
+- [x] **1.2 Zero Emojis in `server.py`:** Ensure all server console logs use clean plain-ASCII prefixes (e.g., `[INIT]`, `[CONNECT]`, `[STATE]`, `[ERROR]`, `[CLEANUP]`).
 
 ---
 
