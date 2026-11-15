@@ -14,22 +14,22 @@
 ## Phase 1: Specification & Schema Compliance Lock
 Ensure both `server.py` and `client.py` adhere strictly to the wire protocol and schemas defined in `@protocol_blueprint.md` and `@ai_prompts.md`.
 
-- [ ] **1.1 Transport & Framing:** Both applications use TCP (`socket.AF_INET`, `socket.SOCK_STREAM`) and frame every JSON message with a trailing newline (`\n`) encoded in `utf-8`.
-- [ ] **1.2 Stream Coalescing & Fragmentation Buffer:** Both `server.py` and `client.py` maintain a persistent receive byte buffer per socket that appends chunks from `recv(4096)` and splits on `\n`, leaving partial trailing bytes in the buffer until the next `recv()` call.
-- [ ] **1.3 Exact JSON Schema Enforcement (No Extra Keys):**
-  - [ ] `CONNECT`: `{"msg_type": "CONNECT", "player_id": "<str>", "timestamp": <int>}`
-  - [ ] `LOBBY_WAIT`: `{"msg_type": "LOBBY_WAIT", "timestamp": <int>}`
-  - [ ] `GAME_START`: `{"msg_type": "GAME_START", "role": "<O|X>", "timestamp": <int>}`
-  - [ ] `MOVE`: `{"msg_type": "MOVE", "player_id": "<str>", "payload": {"row": <int>, "col": <int>}, "timestamp": <int>}`
-  - [ ] `STATE_UPDATE`: `{"msg_type": "STATE_UPDATE", "payload": {"row": <int>, "col": <int>}, "timestamp": <int>}`
-  - [ ] `ERROR`: `{"msg_type": "ERROR", "error_code": <int>, "timestamp": <int>}`
-  - [ ] `DISCONNECT`: `{"msg_type": "DISCONNECT", "player_id": "<str>", "timestamp": <int>}`
-  - [ ] `GAME_OVER`: `{"msg_type": "GAME_OVER", "result": "<str>", "timestamp": <int>}`
-- [ ] **1.4 Standardized Error Codes & Results:**
-  - [ ] Error code `100` used for malformed JSON or missing required fields.
-  - [ ] Error code `111` used for out-of-turn `MOVE` attempts.
-  - [ ] Error code `112` used for out-of-bounds (`row`/`col` not in `0..2`) or already-occupied cell `MOVE` attempts.
-  - [ ] `GAME_OVER` result strings strictly use `"WIN"`, `"LOSE"`, `"DRAW"`, `"WIN_FORFEIT"`, or `"LOSE_FORFEIT"`.
+- [x] **1.1 Transport & Framing:** Both applications use TCP (`socket.AF_INET`, `socket.SOCK_STREAM`) and frame every JSON message with a trailing newline (`\n`) encoded in `utf-8`.
+- [x] **1.2 Stream Coalescing & Fragmentation Buffer:** Both `server.py` and `client.py` maintain a persistent receive byte buffer per socket that appends chunks from `recv(4096)` and splits on `\n`, leaving partial trailing bytes in the buffer until the next `recv()` call.
+- [x] **1.3 Exact JSON Schema Enforcement (No Extra Keys):**
+  - [x] `CONNECT`: `{"msg_type": "CONNECT", "player_id": "<str>", "timestamp": <int>}`
+  - [x] `LOBBY_WAIT`: `{"msg_type": "LOBBY_WAIT", "timestamp": <int>}`
+  - [x] `GAME_START`: `{"msg_type": "GAME_START", "role": "<O|X>", "timestamp": <int>}`
+  - [x] `MOVE`: `{"msg_type": "MOVE", "player_id": "<str>", "payload": {"row": <int>, "col": <int>}, "timestamp": <int>}`
+  - [x] `STATE_UPDATE`: `{"msg_type": "STATE_UPDATE", "payload": {"row": <int>, "col": <int>}, "timestamp": <int>}`
+  - [x] `ERROR`: `{"msg_type": "ERROR", "error_code": <int>, "timestamp": <int>}`
+  - [x] `DISCONNECT`: `{"msg_type": "DISCONNECT", "player_id": "<str>", "timestamp": <int>}`
+  - [x] `GAME_OVER`: `{"msg_type": "GAME_OVER", "result": "<str>", "timestamp": <int>}`
+- [x] **1.4 Standardized Error Codes & Results:**
+  - [x] Error code `100` used for malformed JSON or missing required fields.
+  - [x] Error code `111` used for out-of-turn `MOVE` attempts.
+  - [x] Error code `112` used for out-of-bounds (`row`/`col` not in `0..2`) or already-occupied cell `MOVE` attempts.
+  - [x] `GAME_OVER` result strings strictly use `"WIN"`, `"LOSE"`, `"DRAW"`, `"WIN_FORFEIT"`, or `"LOSE_FORFEIT"`.
 
 ---
 
@@ -37,34 +37,34 @@ Ensure both `server.py` and `client.py` adhere strictly to the wire protocol and
 Build `server.py` to the below sepcifications
 
 ### 2.1 CLI Argument Parsing & Socket Setup (Criterion 1)
-- [ ] **2.1.1 `argparse` Flags:** Implements `-h` (help) and `-p` / `--port` (required integer).
-- [ ] **2.1.2 Port Validation:** Validates that `-p` is between `1024` and `65535` (inclusive). Prints helpful usage syntax and exits cleanly with non-zero status if missing or invalid.
-- [ ] **2.1.3 Non-Blocking Bind to `0.0.0.0`:** Binds listening TCP socket to `('0.0.0.0', args.port)` with `SO_REUSEADDR`, calls `server_sock.setblocking(False)`, and registers it with `selectors.DefaultSelector()`.
+- [x] **2.1.1 `argparse` Flags:** Implements `-h` (help) and `-p` / `--port` (required integer).
+- [x] **2.1.2 Port Validation:** Validates that `-p` is between `1024` and `65535` (inclusive). Prints helpful usage syntax and exits cleanly with non-zero status if missing or invalid.
+- [x] **2.1.3 Non-Blocking Bind to `0.0.0.0`:** Binds listening TCP socket to `('0.0.0.0', args.port)` with `SO_REUSEADDR`, calls `server_sock.setblocking(False)`, and registers it with `selectors.DefaultSelector()`.
 
 ### 2.2 Single-Threaded `selectors` Multiplexing (Criterion 4)
-- [ ] **2.2.1 Strictly Single-Threaded:** Uses `selectors.DefaultSelector()` exclusively for concurrency (zero use of `threading` or `asyncio`).
-- [ ] **2.2.2 Non-Blocking Client Sockets:** Calls `conn.setblocking(False)` on every accepted client socket and registers it with the selector.
-- [ ] **2.2.3 Selector Loop Timeout:** Calls `sel.select(timeout=1.0)` inside the main event loop so the 60-second turn timeout timer is checked at least once per second.
+- [x] **2.2.1 Strictly Single-Threaded:** Uses `selectors.DefaultSelector()` exclusively for concurrency (zero use of `threading` or `asyncio`).
+- [x] **2.2.2 Non-Blocking Client Sockets:** Calls `conn.setblocking(False)` on every accepted client socket and registers it with the selector.
+- [x] **2.2.3 Selector Loop Timeout:** Calls `sel.select(timeout=1.0)` inside the main event loop so the 60-second turn timeout timer is checked at least once per second.
 
 ### 2.3 FSM States & Game Logic (`@fsm_specification.md`)
-- [ ] **2.3.1 `INIT` $\rightarrow$ `WAITING_FOR_PLAYERS`:** Initializes server state, empty 3x3 board, client tracking dictionary, and starts listening.
-- [ ] **2.3.2 `WAITING_FOR_PLAYERS` (Player 1 Connects):** Upon receiving `CONNECT` from the 1st client, stores `player_id`, assigns role `"O"`, sends `LOBBY_WAIT`, and stays in `WAITING_FOR_PLAYERS`.
-- [ ] **2.3.3 `WAITING_FOR_PLAYERS` $\rightarrow$ `GAME_START` (Player 2 Connects):** Upon receiving `CONNECT` from the 2nd client, stores `player_id`, assigns role `"X"`, and transitions immediately to `GAME_START`. (Rejects or ignores extra connections while a match of 2 players is active).
-- [ ] **2.3.4 `GAME_START` $\rightarrow$ `PLAYER_TURN`:** Resets 3x3 board to empty, sets active turn to `"O"` (Player 1 always starts first), sends `GAME_START` with `"role": "O"` to Player 1 and `"role": "X"` to Player 2, starts the 60-second turn timer (`time.time()`), and transitions to `PLAYER_TURN`.
-- [ ] **2.3.5 `PLAYER_TURN` (Out-of-Turn Check):** If the non-active player sends `MOVE`, responds to that client with `ERROR` (`error_code: 111`) and remains in `PLAYER_TURN` without resetting the active player's timer.
-- [ ] **2.3.6 `PLAYER_TURN` $\rightarrow$ `EVALUATE_MOVE`:** When the active player sends `MOVE`, validates `payload.row` and `payload.col`.
-  - [ ] If coordinates are not integers in `0..2` or the cell is not empty: sends `ERROR` (`error_code: 112`) to the active player and returns to `PLAYER_TURN`.
-  - [ ] If valid: updates server board, broadcasts `STATE_UPDATE` (`row`, `col`) to **both** clients.
-- [ ] **2.3.7 Win / Draw / Continue Evaluation:**
-  - [ ] If 3-in-a-row detected: transitions to `GAME_OVER`, sends `GAME_OVER` (`"WIN"`) to winner and `GAME_OVER` (`"LOSE"`) to loser, then runs `CLEANUP`.
-  - [ ] If all 9 cells filled with no winner: transitions to `GAME_OVER`, sends `GAME_OVER` (`"DRAW"`) to both clients, then runs `CLEANUP`.
-  - [ ] Otherwise: switches active turn (`"O"` $\leftrightarrow$ `"X"`), resets the 60-second turn timer, and transitions back to `PLAYER_TURN`.
+- [x] **2.3.1 `INIT` $\rightarrow$ `WAITING_FOR_PLAYERS`:** Initializes server state, empty 3x3 board, client tracking dictionary, and starts listening.
+- [x] **2.3.2 `WAITING_FOR_PLAYERS` (Player 1 Connects):** Upon receiving `CONNECT` from the 1st client, stores `player_id`, assigns role `"O"`, sends `LOBBY_WAIT`, and stays in `WAITING_FOR_PLAYERS`.
+- [x] **2.3.3 `WAITING_FOR_PLAYERS` $\rightarrow$ `GAME_START` (Player 2 Connects):** Upon receiving `CONNECT` from the 2nd client, stores `player_id`, assigns role `"X"`, and transitions immediately to `GAME_START`. (Rejects or ignores extra connections while a match of 2 players is active).
+- [x] **2.3.4 `GAME_START` $\rightarrow$ `PLAYER_TURN`:** Resets 3x3 board to empty, sets active turn to `"O"` (Player 1 always starts first), sends `GAME_START` with `"role": "O"` to Player 1 and `"role": "X"` to Player 2, starts the 60-second turn timer (`time.time()`), and transitions to `PLAYER_TURN`.
+- [x] **2.3.5 `PLAYER_TURN` (Out-of-Turn Check):** If the non-active player sends `MOVE`, responds to that client with `ERROR` (`error_code: 111`) and remains in `PLAYER_TURN` without resetting the active player's timer.
+- [x] **2.3.6 `PLAYER_TURN` $\rightarrow$ `EVALUATE_MOVE`:** When the active player sends `MOVE`, validates `payload.row` and `payload.col`.
+  - [x] If coordinates are not integers in `0..2` or the cell is not empty: sends `ERROR` (`error_code: 112`) to the active player and returns to `PLAYER_TURN`.
+  - [x] If valid: updates server board, broadcasts `STATE_UPDATE` (`row`, `col`) to **both** clients.
+- [x] **2.3.7 Win / Draw / Continue Evaluation:**
+  - [x] If 3-in-a-row detected: transitions to `GAME_OVER`, sends `GAME_OVER` (`"WIN"`) to winner and `GAME_OVER` (`"LOSE"`) to loser, then runs `CLEANUP`.
+  - [x] If all 9 cells filled with no winner: transitions to `GAME_OVER`, sends `GAME_OVER` (`"DRAW"`) to both clients, then runs `CLEANUP`.
+  - [x] Otherwise: switches active turn (`"O"` $\leftrightarrow$ `"X"`), resets the 60-second turn timer, and transitions back to `PLAYER_TURN`.
 
 ### 2.4 Timeout, Disconnects & Cleanup
-- [ ] **2.4.1 60-Second Turn Timeout:** If `time.time() - turn_start_time > 60` during `PLAYER_TURN`, transitions to `GAME_OVER`, sends `GAME_OVER` (`"LOSE_FORFEIT"`) to the active player and `GAME_OVER` (`"WIN_FORFEIT"`) to the waiting player, and runs `CLEANUP`.
-- [ ] **2.4.2 Graceful `DISCONNECT` Message:** If a client sends `DISCONNECT` during an active game, transitions to `GAME_OVER`, sends `GAME_OVER` (`"WIN_FORFEIT"`) to the remaining player, and runs `CLEANUP`.
-- [ ] **2.4.3 Abrupt Disconnect & EOF Handling:** Detects `recv()` returning `b""` (0-byte EOF) and catches `ConnectionResetError`, `BrokenPipeError`, and `TimeoutError`. Awards `"WIN_FORFEIT"` to the remaining player if in an active game (or cleans up the waiting client if in `WAITING_FOR_PLAYERS`) without crashing the server.
-- [ ] **2.4.4 `CLEANUP` $\rightarrow$ `WAITING_FOR_PLAYERS`:** Unregisters client sockets from `selectors`, closes client sockets cleanly, resets board and active turn state, and returns to `WAITING_FOR_PLAYERS` ready for a new game.
+- [x] **2.4.1 60-Second Turn Timeout:** If `time.time() - turn_start_time > 60` during `PLAYER_TURN`, transitions to `GAME_OVER`, sends `GAME_OVER` (`"LOSE_FORFEIT"`) to the active player and `GAME_OVER` (`"WIN_FORFEIT"`) to the waiting player, and runs `CLEANUP`.
+- [x] **2.4.2 Graceful `DISCONNECT` Message:** If a client sends `DISCONNECT` during an active game, transitions to `GAME_OVER`, sends `GAME_OVER` (`"WIN_FORFEIT"`) to the remaining player, and runs `CLEANUP`.
+- [x] **2.4.3 Abrupt Disconnect & EOF Handling:** Detects `recv()` returning `b""` (0-byte EOF) and catches `ConnectionResetError`, `BrokenPipeError`, and `TimeoutError`. Awards `"WIN_FORFEIT"` to the remaining player if in an active game (or cleans up the waiting client if in `WAITING_FOR_PLAYERS`) without crashing the server.
+- [x] **2.4.4 `CLEANUP` $\rightarrow$ `WAITING_FOR_PLAYERS`:** Unregisters client sockets from `selectors`, closes client sockets cleanly, resets board and active turn state, and returns to `WAITING_FOR_PLAYERS` ready for a new game.
 
 ---
 
