@@ -84,3 +84,22 @@ When a match ends (`GAME_OVER` received or opponent forfeits):
 - [x] **3.3 Implement Option 1 (Reconnect to Same Server):** Reconnects cleanly to the same `(hostname, port)` and starts a new game.
 - [x] **3.4 Implement Option 2 (Change Host & Port):** Prompts for new hostname and port, validates port (`1024-65535`), resolves DNS via `socket.gethostbyname()` catching `socket.gaierror`, and connects.
 - [x] **3.5 Implement Option 3 (Quit):** Prints final session summary and exits cleanly.
+
+---
+
+## 3.5 Console Auto-Clear & Live Dashboard View (`client.py` Only)
+
+Keep the client terminal pinned to a clean, single-screen view by clearing previous board states on each valid move while keeping server logs untouched.
+
+- [ ] **3.5.1 Cross-Platform Screen Clear Helper:**
+  - Implement `clear_screen()` in `client.py` using `os.system('cls' if os.name == 'nt' else 'clear')`.
+- [ ] **3.5.2 Clear on Board Redraw (`GAME_START` & `STATE_UPDATE`):**
+  - Call `clear_screen()` immediately before rendering the 3x3 board when processing `GAME_START` or `STATE_UPDATE` so only the current board state is shown.
+- [ ] **3.5.3 Persistent Top Status Header:**
+  - Right after clearing the screen and before printing the 3x3 board, print a compact 2-line ASCII header displaying:
+    - Player ID, Assigned Role (`O` or `X`), and Server (`host:port`)
+    - Current Session Scoreboard (`Wins | Losses | Draws | Forfeits`)
+- [ ] **3.5.4 Preserve Error & Game Over Visibility:**
+  - Do NOT call `clear_screen()` when receiving `ERROR` (`100`, `111`, `112`) or `GAME_OVER` so that error messages and final match banners remain visible directly beneath the current board.
+- [ ] **3.5.5 Preserve Full History in `server.py`:**
+  - Do NOT clear the console in `server.py` so the server terminal retains the complete multi-turn execution log required for Sprint 3 submission screenshots.
