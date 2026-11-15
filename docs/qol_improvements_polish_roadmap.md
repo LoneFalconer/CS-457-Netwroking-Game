@@ -45,8 +45,8 @@ If rendering `row,col` inside empty cells, format every cell to a fixed width of
   O  |  O  |  X  
 ```
 
-- [ ] **2.1 Uniform Cell Width:** Update the board rendering function in `client.py` so every row and column separator (`|` and `+---+` or `-----+-----+-----`) aligns vertically with zero horizontal shifting as moves are made.
-- [ ] **2.2 Verify Alignment:** Test rendering an empty board, a partially filled board, and a full board to confirm pipes (`|`) never shift position.
+- [x] **2.1 Uniform Cell Width:** Update the board rendering function in `client.py` so every row and column separator (`|` and `+---+` or `-----+-----+-----`) aligns vertically with zero horizontal shifting as moves are made.
+- [x] **2.2 Verify Alignment:** Test rendering an empty board, a partially filled board, and a full board to confirm pipes (`|`) never shift position.
 
 ---
 

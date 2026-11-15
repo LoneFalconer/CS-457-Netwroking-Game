@@ -50,21 +50,25 @@ def render_board(board: list[list[str]]) -> str:
     Empty cells are shown as their coordinate hint (row,col) so the player
     knows exactly what to type.
 
-      O | 0,1 | X
-     ---+-----+---
-     1,0 | O  | 1,2
-     ---+-----+---
-     X  | 2,1 | 2,2
+    +-----+-----+-----+
+    |  O  | 0,1 |  X  |
+    +-----+-----+-----+
+    | 1,0 |  O  | 1,2 |
+    +-----+-----+-----+
+    |  X  | 2,1 | 2,2 |
+    +-----+-----+-----+
     """
-    rows = []
+    divider = "+-----+-----+-----+"
+    lines = [divider]
     for r in range(3):
         cells = []
         for c in range(3):
             val = board[r][c]
-            cells.append(f" {val if val else f'{r},{c}'} ")
-        rows.append("|".join(cells))
-    separator = "-" * len(rows[0])
-    return f"\n{separator}\n".join(rows)
+            cell_val = val if val else f"{r},{c}"
+            cells.append(f" {cell_val:^3} ")
+        lines.append(f"|{'|'.join(cells)}|")
+        lines.append(divider)
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
