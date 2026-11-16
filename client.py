@@ -292,7 +292,10 @@ class TicTacToeClient:
         while True:
             print("\n" + "=" * 44)
             print("What would you like to do next?")
-            print(f"[1] Play Again (Reconnect to same server: {self.current_host}:{self.current_port})")
+            print(
+                f"[1] Play Again (Reconnect to same server: "
+                f"{self.current_host}:{self.current_port})"
+            )
             print("[2] Change Server Host / Port")
             print("[3] Quit")
             print("=" * 44)
@@ -514,8 +517,14 @@ class TicTacToeClient:
         connected server, and current session scoreboard (3.5.3).
         """
         print("=" * 44)
-        print(f"Player: {self.player_id} | Role: {self.my_role} | Server: {self.current_host}:{self.current_port}")
-        print(f"Wins: {self.wins} | Losses: {self.losses} | Draws: {self.draws} | Forfeits: {self.forfeits}")
+        print(
+            f"Player: {self.player_id} | Role: {self.my_role} | "
+            f"Server: {self.current_host}:{self.current_port}"
+        )
+        print(
+            f"Wins: {self.wins} | Losses: {self.losses} | "
+            f"Draws: {self.draws} | Forfeits: {self.forfeits}"
+        )
         print("=" * 44)
 
     def _on_game_start(self, msg: dict) -> None:
@@ -623,7 +632,8 @@ class TicTacToeClient:
     def _print_turn_status(self) -> None:
         """Print whose turn it is and prompt for input if it's the user's turn."""
         if self.current_turn == self.my_role:
-            print(f"  [TURN] Your Turn ({self.my_role}) - enter move (row col): ", end="", flush=True)
+            prompt = f"  [TURN] Your Turn ({self.my_role}) - enter move (row col): "
+            print(prompt, end="", flush=True)
         else:
             print(f"  [WAIT] Waiting for Player {self.current_turn}...")
 
@@ -734,7 +744,9 @@ def main() -> None:
 
     # --- Prompt for player ID (3.2.1) ---
     try:
-        player_id = input("Enter your gamer tag (alphanumeric, leave blank for 'Player'): ").strip()
+        player_id = input(
+            "Enter your gamer tag (alphanumeric, leave blank for 'Player'): "
+        ).strip()
     except (EOFError, KeyboardInterrupt):
         player_id = ""
 
