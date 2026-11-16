@@ -59,7 +59,7 @@ Five lines exceed PEP 8's 99-character soft limit (E501). No other violations fo
 
 Split each over-length print/input string using implicit string continuation or a local variable. **No logic changes whatsoever.**
 
-- [ ] **L295** — Split the `[1] Play Again` print f-string in `_post_game_menu()`:
+- [x] **L295** — Split the `[1] Play Again` print f-string in `_post_game_menu()`:
   ```python
   # Before (104 chars):
   print(f"[1] Play Again (Reconnect to same server: {self.current_host}:{self.current_port})")
@@ -71,7 +71,7 @@ Split each over-length print/input string using implicit string continuation or 
   )
   ```
 
-- [ ] **L517** — Split the `Player | Role | Server` print in `_print_dashboard_header()`:
+- [x] **L517** — Split the `Player | Role | Server` print in `_print_dashboard_header()`:
   ```python
   # Before (115 chars):
   print(f"Player: {self.player_id} | Role: {self.my_role} | Server: {self.current_host}:{self.current_port}")
@@ -83,7 +83,7 @@ Split each over-length print/input string using implicit string continuation or 
   )
   ```
 
-- [ ] **L518** — Split the `Wins | Losses | Draws | Forfeits` print in `_print_dashboard_header()`:
+- [x] **L518** — Split the `Wins | Losses | Draws | Forfeits` print in `_print_dashboard_header()`:
   ```python
   # Before (109 chars):
   print(f"Wins: {self.wins} | Losses: {self.losses} | Draws: {self.draws} | Forfeits: {self.forfeits}")
@@ -95,7 +95,7 @@ Split each over-length print/input string using implicit string continuation or 
   )
   ```
 
-- [ ] **L626** — Split the `[TURN]` prompt print in `_print_turn_status()`:
+- [x] **L626** — Split the `[TURN]` prompt print in `_print_turn_status()`:
   ```python
   # Before (102 chars):
   print(f"  [TURN] Your Turn ({self.my_role}) - enter move (row col): ", end="", flush=True)
@@ -105,7 +105,7 @@ Split each over-length print/input string using implicit string continuation or 
   print(prompt, end="", flush=True)
   ```
 
-- [ ] **L737** — Split the `input()` call in `main()`:
+- [x] **L737** — Split the `input()` call in `main()`:
   ```python
   # Before (100 chars):
   player_id = input("Enter your gamer tag (alphanumeric, leave blank for 'Player'): ").strip()
