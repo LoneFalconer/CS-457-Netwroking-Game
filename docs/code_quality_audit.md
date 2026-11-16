@@ -116,8 +116,8 @@ Split each over-length print/input string using implicit string continuation or 
   ).strip()
   ```
 
-- [ ] Run `pycodestyle --max-line-length=99 client.py` to confirm zero remaining E501 errors after the fixes.
-- [ ] Re-run the full test suite (`test_phase4.py`, `test_server.py`, `test_qol_session.py`) to confirm no regressions.
+- [x] Run `pycodestyle --max-line-length=99 client.py` to confirm zero remaining E501 errors after the fixes.
+- [x] Re-run the full test suite (`test_phase4.py`, `test_server.py`, `test_qol_session.py`) to confirm no regressions.
 
 > [!TIP]
 > No Phase 2 or Phase 3 is necessary. `server.py` requires zero changes. `client.py` has no missing docstrings and no modularity issues — only the 5 print-string line breaks above.
